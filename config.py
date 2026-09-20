@@ -1,6 +1,8 @@
-from pathlib import Path
+import settings
 
-PORTFOLIO_SITE = Path("/home/zachp/CC_Projects/portfolio-site")
+PORTFOLIO_SITE = settings.get_portfolio_site()
+if PORTFOLIO_SITE is None:
+    raise RuntimeError("Portfolio site not configured. Run main.py first.")
 DATA_DIR = PORTFOLIO_SITE / "data"
 MEDIA_DIR = PORTFOLIO_SITE / "media"
 MEDIA_IMAGES_DIR = MEDIA_DIR / "images"
