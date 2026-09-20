@@ -12,9 +12,9 @@ POST_TEMPLATE = """<!DOCTYPE html>
        ~/CC_Projects/blog-tool/blogpost.py to generate new posts.
        New posts should be created via that tool, not by copying this file by hand. -->
   <meta charset="UTF-8">
-  <meta name="description" content="{title} — a devlog post on PettyPixels.">
+  <meta name="description" content="{title} - a devlog post on PettyPixels.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{title} — PettyPixels</title>
+  <title>{title} - PettyPixels</title>
   <link rel="icon" type="image/svg+xml" href="../favicon.svg">
   <link rel="stylesheet" href="../styles.css">
 </head>
