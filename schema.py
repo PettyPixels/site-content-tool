@@ -45,7 +45,7 @@ CONTENT_TYPES = {
             Field("title", "Title", "text"),
             Field("image", "Image", "image"),
             Field("alt", "Alt Text", "text"),
-            Field("medium", "Medium", "text"),
+            Field("type", "Type", "text"),
             Field("description", "Description", "multiline"),
             Field("hidden", "Hidden", "bool", required=False),
         ],
