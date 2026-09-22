@@ -34,7 +34,7 @@ POST_TEMPLATE = """<!DOCTYPE html>
         <a href="../models.html">3D</a>
         <a href="../music.html">Music</a>
         <a href="../blog.html" class="current">Blog</a>
-        <a href="#contact">Contact</a>
+        <a href="../contact.html">Contact</a>
       </nav>
 
       <div class="window-body">
@@ -56,7 +56,7 @@ POST_TEMPLATE = """<!DOCTYPE html>
               <a href="mailto:zach@pettypixels.dev"><img src="../media/icons/email.svg" alt="Email"></a>
               <a href="https://zachpetty.itch.io/" target="_blank" rel="noopener noreferrer"><img src="../media/icons/itchio.svg" alt="Itch.io"></a>
               <a href="https://www.youtube.com/@PettyPixelsDev" target="_blank" rel="noopener noreferrer"><img src="../media/icons/youtube.svg" alt="YouTube"></a>
-              <a href="https://discord.gg/vHTsk4FcWH" target="_blank" rel="noopener noreferrer"><img src="../media/icons/discord.svg" alt="Discord"></a>
+              <a href="https://discordapp.com/users/322584258508095490" target="_blank" rel="noopener noreferrer"><img src="../media/icons/discord.svg" alt="Discord"></a>
             </div>
           </div>
         </section>
