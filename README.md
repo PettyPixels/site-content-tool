@@ -2,9 +2,9 @@
 
 [![Tests](https://github.com/PettyPixels/site-content-tool/actions/workflows/tests.yml/badge.svg)](https://github.com/PettyPixels/site-content-tool/actions/workflows/tests.yml)
 
-A desktop GUI for managing the content of a static, JSON-driven portfolio website — no hand-editing JSON, no hand-writing HTML.
+A desktop GUI for managing the content of a static, JSON-driven portfolio website - no hand-editing JSON, no hand-writing HTML.
 
-I built it to run [pettypixels.dev](https://pettypixels.dev): every project card, piece of art, 3D model, music release, and blog post on the site is a JSON entry, and this tool is how I create, edit, reorder, and delete them.
+I built it to run my website [pettypixels.dev](https://pettypixels.dev): every project card, piece of art, 3D model, music release, and blog post on the site is a JSON entry, and this tool is how I create, edit, reorder, and delete them.
 
 ![The Blog tab of Site Content Tool](docs/screenshots/blog-tab.png)
 
@@ -108,4 +108,4 @@ The windowed executable is written to `dist/`.
 
 ## Author
 
-Zach Petty — [pettypixels.dev](https://pettypixels.dev) · [GitHub](https://github.com/PettyPixels)
+Zach Petty - [pettypixels.dev](https://pettypixels.dev) · [GitHub](https://github.com/PettyPixels)
