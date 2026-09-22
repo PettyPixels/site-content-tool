@@ -64,6 +64,8 @@ POST_TEMPLATE = """<!DOCTYPE html>
       </div>
     </div>
   </div>
+
+  <script src="../lightbox.js" defer></script>
 </body>
 </html>
 """
