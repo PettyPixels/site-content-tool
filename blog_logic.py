@@ -8,9 +8,9 @@ from config import BLOG_DIR
 POST_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- This page's structure is the template used by
-       ~/CC_Projects/blog-tool/blogpost.py to generate new posts.
-       New posts should be created via that tool, not by copying this file by hand. -->
+  <!-- This page's structure is the template used by Site Content Tool
+       (blog_logic.py) to generate new posts. New posts should be created via
+       that tool, not by copying this file by hand. -->
   <meta charset="UTF-8">
   <meta name="description" content="{title} - a devlog post on PettyPixels.">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -91,6 +91,8 @@ def unique_slug(base_slug, existing_slugs):
 def strip_tags_and_excerpt(html_body, max_len=150):
     text = re.sub(r"<[^>]+>", " ", html_body)
     text = re.sub(r"\s+", " ", text).strip()
+    # Tags were swapped for spaces above, so "<b>fun</b>." would read "fun ."
+    text = re.sub(r"\s+([.,!?;:])", r"\1", text)
     match = re.search(r"^.*?[.!?](?=\s|$)", text)
     sentence = match.group(0) if match else text
     if len(sentence) > max_len:
