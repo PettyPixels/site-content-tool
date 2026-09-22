@@ -56,10 +56,10 @@ def copy_image(source_path, images_dir):
     source_path = Path(source_path)
     try:
         if source_path.resolve().parent == images_dir.resolve():
-            return str(source_path.relative_to(PORTFOLIO_SITE))
+            return source_path.relative_to(PORTFOLIO_SITE).as_posix()
     except (OSError, ValueError):
         pass
     images_dir.mkdir(parents=True, exist_ok=True)
     dest = _unique_image_path(images_dir, source_path.name)
     shutil.copy2(source_path, dest)
-    return str(dest.relative_to(PORTFOLIO_SITE))
+    return dest.relative_to(PORTFOLIO_SITE).as_posix()
