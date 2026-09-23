@@ -104,7 +104,7 @@ The windowed executable is written to `dist/`.
 - It edits files on disk only. Publishing (committing and pushing the site) is a separate step.
 - It is coupled to my site's data format and blog template. Reusing it on a different site means editing `schema.py` and the post template in `blog_logic.py`.
 - The blog body is edited as raw text and light HTML; there is no rich-text preview.
-- Single user, single site, no undo beyond your version control.
+- Single user, single site, no undo beyond version control.
 
 ## Author
 
