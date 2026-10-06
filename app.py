@@ -1,11 +1,15 @@
+import webbrowser
 from tkinter import ttk, messagebox
 
 import schema
 import storage
+from config import PORTFOLIO_SITE
 from storage import JSONParseError
 from form_panel import EntryFormPanel
 from list_panel import EntryListPanel
 from blog_tab import BlogTab
+from preview import PreviewServer
+from publish_dialog import PublishDialog
 
 
 class TypeTab(ttk.Frame):
@@ -50,6 +54,12 @@ class TypeTab(ttk.Frame):
         self.list_panel.refresh(self.entries)
         self.selected_index = None
         self.form_panel.clear()
+
+    def preview_page(self):
+        return self.content_type.page
+
+    def has_unsaved_changes(self):
+        return self.form_panel.has_unsaved_changes()
 
     def _select_entry(self, index):
         self.selected_index = index
@@ -108,9 +118,36 @@ class App(ttk.Frame):
     def __init__(self, root):
         super().__init__(root)
         self.pack(fill="both", expand=True)
-        notebook = ttk.Notebook(self)
-        notebook.pack(fill="both", expand=True)
+        self.preview_server = PreviewServer(PORTFOLIO_SITE)
+
+        toolbar = ttk.Frame(self)
+        toolbar.pack(fill="x", padx=8, pady=(8, 0))
+        ttk.Button(toolbar, text="Preview", command=self._preview).pack(side="left")
+        ttk.Button(toolbar, text="Publish…", command=self._publish).pack(side="left", padx=(6, 0))
+
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill="both", expand=True)
         for content_type in schema.CONTENT_TYPES.values():
-            tab = TypeTab(notebook, content_type)
-            notebook.add(tab, text=content_type.label)
-        notebook.add(BlogTab(notebook), text="Blog")
+            tab = TypeTab(self.notebook, content_type)
+            self.notebook.add(tab, text=content_type.label)
+        self.notebook.add(BlogTab(self.notebook), text="Blog")
+
+    def _current_tab(self):
+        return self.nametowidget(self.notebook.select())
+
+    def _preview(self):
+        tab = self._current_tab()
+        if tab.has_unsaved_changes() and not messagebox.askokcancel(
+            "Unsaved changes",
+            "The open form has unsaved edits. Preview shows saved files only.\n\nPreview anyway?",
+        ):
+            return
+        try:
+            url = self.preview_server.url_for(tab.preview_page())
+        except OSError as e:
+            messagebox.showerror("Preview failed", f"Couldn't start the preview server:\n\n{e}")
+            return
+        webbrowser.open(url)
+
+    def _publish(self):
+        PublishDialog(self, PORTFOLIO_SITE, unsaved_edits=self._current_tab().has_unsaved_changes())
