@@ -162,17 +162,25 @@ class EntryFormPanel(ttk.Frame):
 
         button_row = ttk.Frame(self)
         button_row.pack(side="top", fill="x", pady=(10, 0))
-        ttk.Button(button_row, text="Save", command=self._handle_save).pack(side="left")
+        ttk.Button(button_row, text="Save", command=self.save).pack(side="left")
 
     def clear(self):
         for entry_field in self.content_type.fields:
             self._widgets[entry_field.name].set(None)
+        self._snapshot = self._current_values()
 
     def load_entry(self, entry):
         for entry_field in self.content_type.fields:
             self._widgets[entry_field.name].set(entry.get(entry_field.name))
+        self._snapshot = self._current_values()
 
-    def _handle_save(self):
+    def _current_values(self):
+        return {name: widget.get() for name, widget in self._widgets.items()}
+
+    def has_unsaved_changes(self):
+        return self._current_values() != self._snapshot
+
+    def save(self):
         missing = [
             entry_field.label
             for entry_field in self.content_type.fields

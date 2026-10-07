@@ -22,6 +22,8 @@ Once the blog was JSON-backed, the same pain applied to every other content type
 - **Blog post generation**: write a title and body, and the tool renders a complete post page from a template, derives a URL slug, stamps the date, and adds the entry to `posts.json`. Body lines that start with `<` are passed through as raw HTML; plain lines are wrapped in `<p>`.
 - **Excerpt auto-fill**: pulls the first sentence out of the post body (tags stripped, capped at 150 characters).
 - **Per-entry flags**: `hidden` (kept in the data, not shown on the site) and `featured`, where applicable.
+- **Local preview**: **View → Preview** (F5) serves the site folder on `localhost` and opens the page for the current tab (or the selected blog post) in your browser. It shows what's saved on disk, and warns if the open form has unsaved edits.
+- **One-click publish**: **File → Publish…** (Ctrl+Shift+P) commits the tool's changes and pushes them to `main`, which GitHub Pages deploys. A confirmation dialog lists every file going out and pre-fills an editable commit message (e.g. `Add blog post: my-post; add 2 images`). After the push it offers to open the live site.
 
 ## Design notes
 
@@ -30,6 +32,10 @@ Once the blog was JSON-backed, the same pain applied to every other content type
 **Safe writes.** [`storage.py`](storage.py) never writes JSON in place. It writes to a temp file in the same directory, flushes and `fsync`s it, then swaps it into place with `os.replace()`, which is atomic. A crash or a serialization error mid-save leaves the previous file intact, and the temp file is cleaned up.
 
 **Refuses to clobber bad data.** If a JSON file fails to parse (say, after a hand edit), that tab shows the error and disables saving until the file is fixed. It never overwrites a file it couldn't read.
+
+**Publishing can't sweep in stray work.** [`publish.py`](publish.py) only ever stages `data/`, `media/images/`, and `blog/`, and commits by pathspec, so template edits or files you staged yourself stay out of a publish. Before committing it fetches and fast-forwards `main`; if the site repo is on another branch or has diverged from GitHub, it stops and says why instead of guessing. It never force-pushes. Authentication is whatever your `git` already uses (e.g. Git Credential Manager); the tool never sees or stores a token.
+
+**Preview needs a server.** The site `fetch()`es its JSON, which browsers block under `file://`, so [`preview.py`](preview.py) runs Python's built-in HTTP server bound to `127.0.0.1` on a free port, with caching disabled so a re-preview after saving never shows stale data.
 
 **Confirmation before destruction.** Deleting an entry asks first. Deleting a blog post also removes its generated HTML file.
 
@@ -45,6 +51,9 @@ Once the blog was JSON-backed, the same pain applied to every other content type
 | `blog_tab.py` | The Blog tab: post form and post file lifecycle |
 | `blog_logic.py` | Slug, excerpt, body-extraction, and post HTML rendering |
 | `storage.py` | JSON load/save (atomic) and image copying |
+| `preview.py` | Local HTTP server for View → Preview |
+| `publish.py` | Git checks, commit, and push for publishing (no UI) |
+| `publish_dialog.py` | The Publish confirmation dialog; runs git off the UI thread |
 | `settings.py`, `config.py` | Persisted site location and derived paths |
 
 ## Site layout it expects
@@ -82,13 +91,15 @@ The full set of fields for each type is in [`schema.py`](schema.py). The site it
 
 ## Getting started
 
-Requires **Python 3.10+**. The app itself has no third-party dependencies (tkinter ships with Python).
+Requires **Python 3.10+**. The app itself has no third-party dependencies (tkinter ships with Python). Publishing also needs **git 2.25+** on your PATH, and the site folder must be a clone of the repo GitHub Pages deploys from.
 
 ```bash
 python main.py
 ```
 
 On first launch it asks for your site folder (the one containing `data/` and `media/`) and remembers it in `~/.site-content-tool/settings.json`. Delete that file to be asked again.
+
+The first publish also saves which git remote to push to (`git_remote` in the same file). It picks the repo's only remote, or `origin` if there are several; edit the setting if that's the wrong one.
 
 ### Building a standalone executable
 
@@ -101,7 +112,8 @@ The windowed executable is written to `dist/`.
 
 ## Limitations
 
-- It edits files on disk only. Publishing (committing and pushing the site) is a separate step.
+- Publishing always targets `main`. There's no branch picker or per-file selection.
+- Preview shows saved files only, not unsaved form edits.
 - It is coupled to my site's data format and blog template. Reusing it on a different site means editing `schema.py` and the post template in `blog_logic.py`.
 - The blog body is edited as raw text and light HTML; there is no rich-text preview.
 - Single user, single site, no undo beyond version control.

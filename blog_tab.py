@@ -58,7 +58,7 @@ class BlogFormPanel(ttk.Frame):
 
         button_row = ttk.Frame(self)
         button_row.pack(side="top", fill="x", pady=(10, 0))
-        ttk.Button(button_row, text="Save", command=self._handle_save).pack(side="left")
+        ttk.Button(button_row, text="Save", command=self.save).pack(side="left")
 
     def _autofill_excerpt(self):
         body = self.body_text.get("1.0", "end").strip()
@@ -73,6 +73,19 @@ class BlogFormPanel(ttk.Frame):
         self.body_text.delete("1.0", "end")
         self.excerpt_var.set("")
         self.hidden_var.set(False)
+        self._snapshot = self._current_values()
+
+    def _current_values(self):
+        return (
+            self.title_var.get(),
+            self.tag_var.get(),
+            self.body_text.get("1.0", "end"),
+            self.excerpt_var.get(),
+            self.hidden_var.get(),
+        )
+
+    def has_unsaved_changes(self):
+        return self._current_values() != self._snapshot
 
     def load_post(self, post, body_text):
         self.mode = "edit"
@@ -84,8 +97,9 @@ class BlogFormPanel(ttk.Frame):
         self.body_text.insert("1.0", body_text)
         self.excerpt_var.set(post["excerpt"])
         self.hidden_var.set(bool(post.get("hidden")))
+        self._snapshot = self._current_values()
 
-    def _handle_save(self):
+    def save(self):
         title = self.title_var.get().strip()
         tag = self.tag_var.get().strip() or "Devlog"
         body = self.body_text.get("1.0", "end").strip()
@@ -151,6 +165,14 @@ class BlogTab(ttk.Frame):
         self.list_panel.refresh(self.posts)
         self.selected_index = None
         self.form_panel.clear()
+
+    def preview_page(self):
+        if self.selected_index is not None:
+            return f"blog/{self.posts[self.selected_index]['slug']}"
+        return "blog.html"
+
+    def has_unsaved_changes(self):
+        return self.form_panel.has_unsaved_changes()
 
     def _select_post(self, index):
         self.selected_index = index

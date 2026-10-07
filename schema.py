@@ -16,6 +16,7 @@ class ContentType:
     key: str
     label: str
     json_file: str
+    page: str  # site page that lists this content, opened by Preview
     fields: List[Field]
     supports_placeholder: bool = True
 
@@ -25,6 +26,7 @@ CONTENT_TYPES = {
         key="games",
         label="Game Projects",
         json_file="projects.json",
+        page="games.html",
         supports_placeholder=False,
         fields=[
             Field("title", "Title", "text"),
@@ -41,6 +43,7 @@ CONTENT_TYPES = {
         key="art",
         label="Art",
         json_file="art.json",
+        page="art.html",
         fields=[
             Field("title", "Title", "text"),
             Field("image", "Image", "image"),
@@ -54,6 +57,7 @@ CONTENT_TYPES = {
         key="music",
         label="Music",
         json_file="music.json",
+        page="music.html",
         fields=[
             Field("title", "Title", "text"),
             Field("image", "Image", "image"),
@@ -68,6 +72,7 @@ CONTENT_TYPES = {
         key="models",
         label="3D Models",
         json_file="models.json",
+        page="models.html",
         fields=[
             Field("title", "Title", "text"),
             Field("image", "Image", "image"),

@@ -29,3 +29,13 @@ def set_portfolio_site(path) -> None:
     data = load_settings()
     data["portfolio_site"] = str(path)
     _save_settings(data)
+
+
+def get_git_remote() -> str | None:
+    return load_settings().get("git_remote") or None
+
+
+def set_git_remote(name: str) -> None:
+    data = load_settings()
+    data["git_remote"] = name
+    _save_settings(data)
