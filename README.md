@@ -22,8 +22,8 @@ Once the blog was JSON-backed, the same pain applied to every other content type
 - **Blog post generation**: write a title and body, and the tool renders a complete post page from a template, derives a URL slug, stamps the date, and adds the entry to `posts.json`. Body lines that start with `<` are passed through as raw HTML; plain lines are wrapped in `<p>`.
 - **Excerpt auto-fill**: pulls the first sentence out of the post body (tags stripped, capped at 150 characters).
 - **Per-entry flags**: `hidden` (kept in the data, not shown on the site) and `featured`, where applicable.
-- **Local preview**: the **Preview** button serves the site folder on `localhost` and opens the page for the current tab (or the selected blog post) in your browser. It shows what's saved on disk, and warns if the open form has unsaved edits.
-- **One-click publish**: **Publish…** commits the tool's changes and pushes them to `main`, which GitHub Pages deploys. A confirmation dialog lists every file going out and pre-fills an editable commit message (e.g. `Add blog post: my-post; add 2 images`). After the push it offers to open the live site.
+- **Local preview**: **View → Preview** (F5) serves the site folder on `localhost` and opens the page for the current tab (or the selected blog post) in your browser. It shows what's saved on disk, and warns if the open form has unsaved edits.
+- **One-click publish**: **File → Publish…** (Ctrl+Shift+P) commits the tool's changes and pushes them to `main`, which GitHub Pages deploys. A confirmation dialog lists every file going out and pre-fills an editable commit message (e.g. `Add blog post: my-post; add 2 images`). After the push it offers to open the live site.
 
 ## Design notes
 
@@ -51,7 +51,7 @@ Once the blog was JSON-backed, the same pain applied to every other content type
 | `blog_tab.py` | The Blog tab: post form and post file lifecycle |
 | `blog_logic.py` | Slug, excerpt, body-extraction, and post HTML rendering |
 | `storage.py` | JSON load/save (atomic) and image copying |
-| `preview.py` | Local HTTP server for the Preview button |
+| `preview.py` | Local HTTP server for View → Preview |
 | `publish.py` | Git checks, commit, and push for publishing (no UI) |
 | `publish_dialog.py` | The Publish confirmation dialog; runs git off the UI thread |
 | `settings.py`, `config.py` | Persisted site location and derived paths |

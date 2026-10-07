@@ -1,3 +1,4 @@
+import tkinter as tk
 import webbrowser
 from tkinter import ttk, messagebox
 
@@ -119,11 +120,8 @@ class App(ttk.Frame):
         super().__init__(root)
         self.pack(fill="both", expand=True)
         self.preview_server = PreviewServer(PORTFOLIO_SITE)
-
-        toolbar = ttk.Frame(self)
-        toolbar.pack(fill="x", padx=8, pady=(8, 0))
-        ttk.Button(toolbar, text="Preview", command=self._preview).pack(side="left")
-        ttk.Button(toolbar, text="Publish…", command=self._publish).pack(side="left", padx=(6, 0))
+        self._publish_dialog = None
+        self._build_menu(root)
 
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True)
@@ -132,8 +130,36 @@ class App(ttk.Frame):
             self.notebook.add(tab, text=content_type.label)
         self.notebook.add(BlogTab(self.notebook), text="Blog")
 
+    def _build_menu(self, root):
+        root.option_add("*tearOff", False)
+        menubar = tk.Menu(root)
+
+        file_menu = tk.Menu(menubar)
+        file_menu.add_command(label="Save", accelerator="Ctrl+S", command=self._save)
+        file_menu.add_separator()
+        file_menu.add_command(label="Publish…", accelerator="Ctrl+Shift+P", command=self._publish)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=root.destroy)
+        menubar.add_cascade(label="File", underline=0, menu=file_menu)
+
+        view_menu = tk.Menu(menubar)
+        view_menu.add_command(label="Preview", accelerator="F5", command=self._preview)
+        menubar.add_cascade(label="View", underline=0, menu=view_menu)
+
+        root.config(menu=menubar)
+        # Menu accelerators are display-only in tkinter; the keys need real bindings.
+        root.bind_all("<Control-s>", lambda e: self._save())
+        root.bind_all("<F5>", lambda e: self._preview())
+        root.bind_all("<Control-P>", lambda e: self._publish())
+
     def _current_tab(self):
         return self.nametowidget(self.notebook.select())
+
+    def _save(self):
+        # Ctrl+S still fires inside the publish dialog; don't change files mid-publish.
+        if self._publish_dialog is not None and self._publish_dialog.winfo_exists():
+            return
+        self._current_tab().form_panel.save()
 
     def _preview(self):
         tab = self._current_tab()
@@ -150,4 +176,10 @@ class App(ttk.Frame):
         webbrowser.open(url)
 
     def _publish(self):
-        PublishDialog(self, PORTFOLIO_SITE, unsaved_edits=self._current_tab().has_unsaved_changes())
+        # The shortcut still fires while the dialog is open, so don't stack a second one.
+        if self._publish_dialog is not None and self._publish_dialog.winfo_exists():
+            self._publish_dialog.lift()
+            return
+        self._publish_dialog = PublishDialog(
+            self, PORTFOLIO_SITE, unsaved_edits=self._current_tab().has_unsaved_changes()
+        )

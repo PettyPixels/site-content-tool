@@ -58,7 +58,7 @@ class BlogFormPanel(ttk.Frame):
 
         button_row = ttk.Frame(self)
         button_row.pack(side="top", fill="x", pady=(10, 0))
-        ttk.Button(button_row, text="Save", command=self._handle_save).pack(side="left")
+        ttk.Button(button_row, text="Save", command=self.save).pack(side="left")
 
     def _autofill_excerpt(self):
         body = self.body_text.get("1.0", "end").strip()
@@ -99,7 +99,7 @@ class BlogFormPanel(ttk.Frame):
         self.hidden_var.set(bool(post.get("hidden")))
         self._snapshot = self._current_values()
 
-    def _handle_save(self):
+    def save(self):
         title = self.title_var.get().strip()
         tag = self.tag_var.get().strip() or "Devlog"
         body = self.body_text.get("1.0", "end").strip()
