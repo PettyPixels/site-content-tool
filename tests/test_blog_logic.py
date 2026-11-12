@@ -113,3 +113,26 @@ class TestRenderAndExtract:
 
     def test_extract_returns_empty_string_when_markers_are_missing(self):
         assert blog_logic.extract_body("<html><body>not a generated post</body></html>") == ""
+
+
+class TestNormalizeSlug:
+    @pytest.mark.parametrize(
+        "text, expected",
+        [
+            ("my-post", "my-post"),
+            ("my-post.html", "my-post"),
+            ("  My Post.HTML ", "my-post"),
+            ("Custom Slug!", "custom-slug"),
+        ],
+    )
+    def test_normalizes_typed_slugs(self, text, expected):
+        assert blog_logic.normalize_slug(text) == expected
+
+
+class TestParsePostDate:
+    def test_accepts_iso_dates(self):
+        assert blog_logic.parse_post_date(" 2026-03-05 ") == "2026-03-05"
+
+    @pytest.mark.parametrize("text", ["", "2026-13-01", "March 5", "2026/03/05"])
+    def test_rejects_invalid_dates(self, text):
+        assert blog_logic.parse_post_date(text) is None

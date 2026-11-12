@@ -27,16 +27,20 @@ class BlogFormPanel(ttk.Frame):
         ttk.Entry(fields, textvariable=self.tag_var, width=56).grid(row=1, column=1, sticky="we", padx=4, pady=4)
 
         ttk.Label(fields, text="Slug").grid(row=2, column=0, sticky="ne", padx=4, pady=4)
+        slug_wrap = ttk.Frame(fields)
+        slug_wrap.grid(row=2, column=1, sticky="we", padx=4, pady=4)
         self.slug_var = tk.StringVar()
-        ttk.Entry(fields, textvariable=self.slug_var, width=56, state="readonly").grid(
-            row=2, column=1, sticky="we", padx=4, pady=4
-        )
+        ttk.Entry(slug_wrap, textvariable=self.slug_var, width=44).pack(side="left")
+        self.slug_hint = ttk.Label(slug_wrap, foreground="gray")
+        self.slug_hint.pack(side="left", padx=(6, 0))
 
         ttk.Label(fields, text="Date").grid(row=3, column=0, sticky="ne", padx=4, pady=4)
+        date_wrap = ttk.Frame(fields)
+        date_wrap.grid(row=3, column=1, sticky="we", padx=4, pady=4)
         self.date_var = tk.StringVar()
-        ttk.Entry(fields, textvariable=self.date_var, width=56, state="readonly").grid(
-            row=3, column=1, sticky="we", padx=4, pady=4
-        )
+        ttk.Entry(date_wrap, textvariable=self.date_var, width=44).pack(side="left")
+        self.date_hint = ttk.Label(date_wrap, foreground="gray")
+        self.date_hint.pack(side="left", padx=(6, 0))
 
         ttk.Label(fields, text="Body").grid(row=4, column=0, sticky="ne", padx=4, pady=4)
         self.body_text = tk.Text(fields, width=56, height=16, wrap="word")
@@ -68,8 +72,10 @@ class BlogFormPanel(ttk.Frame):
         self.mode = "new"
         self.title_var.set("")
         self.tag_var.set("Devlog")
-        self.slug_var.set("(generated from title on save)")
-        self.date_var.set("(set to today on save)")
+        self.slug_var.set("")
+        self.slug_hint.config(text="blank = from title")
+        self.date_var.set("")
+        self.date_hint.config(text="YYYY-MM-DD, blank = today")
         self.body_text.delete("1.0", "end")
         self.excerpt_var.set("")
         self.hidden_var.set(False)
@@ -79,6 +85,8 @@ class BlogFormPanel(ttk.Frame):
         return (
             self.title_var.get(),
             self.tag_var.get(),
+            self.slug_var.get(),
+            self.date_var.get(),
             self.body_text.get("1.0", "end"),
             self.excerpt_var.get(),
             self.hidden_var.get(),
@@ -91,8 +99,10 @@ class BlogFormPanel(ttk.Frame):
         self.mode = "edit"
         self.title_var.set(post["title"])
         self.tag_var.set(post["tag"])
-        self.slug_var.set(post["slug"])
+        self.slug_var.set(post["slug"].removesuffix(".html"))
+        self.slug_hint.config(text=".html")
         self.date_var.set(post["date"])
+        self.date_hint.config(text="YYYY-MM-DD")
         self.body_text.delete("1.0", "end")
         self.body_text.insert("1.0", body_text)
         self.excerpt_var.set(post["excerpt"])
@@ -104,20 +114,36 @@ class BlogFormPanel(ttk.Frame):
         tag = self.tag_var.get().strip() or "Devlog"
         body = self.body_text.get("1.0", "end").strip()
 
+        slug_input = self.slug_var.get().strip()
+        date_input = self.date_var.get().strip()
+
         missing = []
         if not title:
             missing.append("Title")
+        if self.mode == "edit" and not slug_input:
+            missing.append("Slug")
+        if self.mode == "edit" and not date_input:
+            missing.append("Date")
         if not body:
             missing.append("Body")
         if missing:
             messagebox.showerror("Missing fields", "Please fill in: " + ", ".join(missing))
             return
 
+        post_date = None
+        if date_input:
+            post_date = blog_logic.parse_post_date(date_input)
+            if post_date is None:
+                messagebox.showerror("Invalid date", f'"{date_input}" is not a valid date. Use YYYY-MM-DD.')
+                return
+
         excerpt = self.excerpt_var.get().strip() or blog_logic.strip_tags_and_excerpt(body)
         self._on_save({
             "mode": self.mode,
             "title": title,
             "tag": tag,
+            "slug": blog_logic.normalize_slug(slug_input) if slug_input else None,
+            "date": post_date,
             "body": body,
             "excerpt": excerpt,
             "hidden": self.hidden_var.get(),
@@ -224,18 +250,34 @@ class BlogTab(ttk.Frame):
             messagebox.showerror("Cannot save", f"{POSTS_JSON} has invalid JSON — fix it by hand first.")
             return
 
-        if data["mode"] == "new":
+        old_slug = None
+        if data["mode"] == "edit":
+            old_slug = self.posts[self.selected_index]["slug"].removesuffix(".html")
+
+        if data["slug"] is None:
             existing_slugs = {p["slug"] for p in self.posts}
             slug = blog_logic.unique_slug(blog_logic.slugify(data["title"]), existing_slugs)
-            post_date = date.today().isoformat()
         else:
-            post = self.posts[self.selected_index]
-            slug = post["slug"].removesuffix(".html")
-            post_date = post["date"]
+            slug = data["slug"]
+            if slug != old_slug:
+                other_slugs = {
+                    p["slug"] for i, p in enumerate(self.posts) if i != self.selected_index
+                }
+                if f"{slug}.html" in other_slugs or (BLOG_DIR / f"{slug}.html").exists():
+                    messagebox.showerror(
+                        "Slug in use", f'"{slug}.html" already exists. Pick a different slug.'
+                    )
+                    return
+
+        post_date = data["date"] or date.today().isoformat()
 
         html = blog_logic.render_post_html(data["title"], data["tag"], post_date, data["body"])
         BLOG_DIR.mkdir(exist_ok=True)
         (BLOG_DIR / f"{slug}.html").write_text(html, encoding="utf-8")
+        if old_slug and old_slug != slug:
+            old_path = BLOG_DIR / f"{old_slug}.html"
+            if old_path.exists():
+                old_path.unlink()
 
         metadata = {
             "title": data["title"],

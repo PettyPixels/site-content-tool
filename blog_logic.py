@@ -2,6 +2,7 @@
 # (the parts with no $EDITOR/input() I/O), so this tab produces byte-identical
 # post pages to the CLI tool. blog-tool itself is untouched.
 import re
+from datetime import date
 
 from config import BLOG_DIR
 
@@ -88,6 +89,22 @@ def unique_slug(base_slug, existing_slugs):
         slug = f"{base_slug}-{n}"
         n += 1
     return slug
+
+
+def normalize_slug(text):
+    """Turn hand-typed slug input (with or without ".html") into a bare slug."""
+    text = text.strip()
+    if text.lower().endswith(".html"):
+        text = text[: -len(".html")]
+    return slugify(text)
+
+
+def parse_post_date(text):
+    """Return the date as YYYY-MM-DD, or None if it isn't a valid ISO date."""
+    try:
+        return date.fromisoformat(text.strip()).isoformat()
+    except ValueError:
+        return None
 
 
 def strip_tags_and_excerpt(html_body, max_len=150):
